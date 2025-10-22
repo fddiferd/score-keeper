@@ -1,0 +1,37 @@
+name: Deploy Frontend to Production
+
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  deploy-frontend-prod:
+    runs-on: ubuntu-latest
+    environment: PROD
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Deploy Frontend to Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+          NEXT_PUBLIC_APPLICATION_SIGNUP_URL: ${{ secrets.NEXT_PUBLIC_APPLICATION_SIGNUP_URL }}
+        run: |
+          chmod +x frontend/deployment/deploy-frontend.sh
+          ./frontend/deployment/deploy-frontend.sh --env PROD

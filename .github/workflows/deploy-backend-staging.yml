@@ -1,0 +1,46 @@
+name: Deploy Backend to Staging
+
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend-staging.yml'
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  deploy-backend-staging:
+    runs-on: ubuntu-latest
+    environment: STAGING
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT_KEY }}
+      
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+    
+    - name: Install Docker
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Deploy to Cloud Run (Staging)
+      env:
+        CLOUD_RUN_SERVICE_ACCOUNT_KEY: ${{ secrets.CLOUD_RUN_SERVICE_ACCOUNT_KEY }}
+        FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+
+        DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        APPLICATION_VANITY_DOMAIN: ${{ secrets.APPLICATION_VANITY_DOMAIN }}
+        APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+        
+      run: |
+        chmod +x backend/deployment/deploy-backend.sh
+        ./backend/deployment/deploy-backend.sh --env STAGING

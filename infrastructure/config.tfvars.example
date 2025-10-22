@@ -1,0 +1,54 @@
+# ┌─────────────────────────────────────────────────────────────────┐
+# │                      Infrastructure Config                      │
+# └─────────────────────────────────────────────────────────────────┘
+
+deployment_enabled = false
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  WRISTBAND AUTHENTICATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── Development Environment ───────────────────────────────────────────────────
+wb_dev_application_vanity_domain = "your-application-vanity-domain.us.wristband.dev"
+wb_dev_client_id                 = "your-dev-client-id"
+wb_dev_client_secret             = "your-dev-client-secret"
+
+# ─── Staging Environment (requires deployment_enabled = true) ──────────────────
+wb_staging_application_vanity_domain = "your-staging-app.us.wristband.dev"
+wb_staging_client_id                 = "your-staging-client-id"
+wb_staging_client_secret             = "your-staging-client-secret"
+
+# ─── Production Environment (requires deployment_enabled = true) ───────────────
+wb_prod_application_vanity_domain = "your-prod-app.us.wristband.dev"
+wb_prod_client_id                 = "your-prod-client-id"
+wb_prod_client_secret             = "your-prod-client-secret"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  GOOGLE CLOUD PLATFORM (requires deployment_enabled = true)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+gcp_billing_account_id = "XXXXXX-XXXXXX-XXXXXX"         # Your GCP billing account ID
+gcp_project_id         = "your-unique-project-id"       # Must be globally unique
+gcp_app_name           = "Your App Backend"
+gcp_region             = "us-central1"
+gcp_firestore_location = "us-central"
+gcp_api_name           = "api"
+gcp_api_repo_name      = "api-repo"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  VERCEL FRONTEND (requires deployment_enabled = true)
+#  Token: https://vercel.com/account/tokens
+# ═══════════════════════════════════════════════════════════════════════════════
+
+vercel_api_token    = "your-vercel-api-token"
+vercel_org_id       = "team_xxxxxxxxxxxxxxxxxxxxxxxx"
+vercel_project_name = "your-project-name"
+vercel_domain_name  = "your-domain.com"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  GITHUB ACTIONS (Optional, requires deployment_enabled = true)
+#  Token: https://github.com/settings/tokens (CLASSIC with 'repo' + 'workflow')
+# ═══════════════════════════════════════════════════════════════════════════════
+
+github_token      = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+github_repository = "https://github.com/your-username/your-repo.git"

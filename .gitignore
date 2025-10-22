@@ -1,0 +1,69 @@
+perk-party-demo-app-copy/*
+wristband-okta.md
+wristband-google-sso.xml
+
+__pycache__
+*.env
+*.env.local
+*.env.staging
+*.env.prod
+*.DS_Store
+.cursor
+.claude/*
+.venv
+*egg-info*
+
+backend/.keys/*
+backend/poetry.lock
+
+node_modules
+
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.*
+frontend/.yarn/*
+frontend/.yarn/patches
+frontend/.yarn/plugins
+frontend/.yarn/releases
+frontend/.yarn/versions
+frontend/.next
+
+# testing
+frontend/coverage
+
+# next.js
+frontend/.next/
+frontend/out/
+
+# production
+frontend/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+frontend/.next/trace
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars.json
+.terraform.lock.hcl
+crash.log
+crash.*.log
+infrastructure/.terraform/
+infrastructure/config.tfvars

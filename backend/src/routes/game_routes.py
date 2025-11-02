@@ -34,8 +34,8 @@ def calculate_player_totals(game: Game, rounds: List[Round]) -> Dict[str, int]:
     
     # Sum up scores from all rounds
     for round in rounds:
-        for player_id, score in round.scores.items():
-            totals[player_id] = totals.get(player_id, 0) + score
+        for score_entry in round.scores:
+            totals[score_entry.player_id] = totals.get(score_entry.player_id, 0) + score_entry.score
     
     return totals
 
@@ -104,9 +104,10 @@ async def create_game(game_data: GameCreate, session: MySession = Depends(get_se
         )
         
         # Save to database (game only, no rounds yet)
-        game_dict = game.model_dump(by_alias=True, mode='json')
-        # Remove computed field from storage
-        game_dict.pop('userIds', None)
+        # Use by_alias=False to store in snake_case for database
+        game_dict = game.model_dump(by_alias=False, mode='json', exclude={'rounds'})
+        # Add computed user_ids field manually
+        game_dict['user_ids'] = game.user_ids
         
         doc_store.add_document(
             COLLECTION_PATH, 

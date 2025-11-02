@@ -47,7 +47,8 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ game, playerNames }) => {
       const roundData: any = { round: index + 1 };
       
       game.players.forEach(player => {
-        runningTotals[player.id] += round.scores[player.id] || 0;
+        const scoreEntry = round.scores.find(s => s.playerId === player.id);
+        runningTotals[player.id] += scoreEntry?.score || 0;
         roundData[player.id] = runningTotals[player.id];
         roundData[`${player.id}_name`] = getPlayerDisplayName(player.id);
       });

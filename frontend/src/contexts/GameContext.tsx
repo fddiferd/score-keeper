@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Game, GameState, Round } from '@/models/game';
+import { Game, GameState, Round, Score } from '@/models/game';
 import frontendApiClient from '@/client/frontend-api-client';
 import axios from 'axios';
 
@@ -11,8 +11,8 @@ interface PlayerInput {
 interface GameContextType {
   gameState: GameState;
   startNewGame: (name: string, players: PlayerInput[], targetScore?: number) => Promise<void>;
-  addRound: (scores: Record<string, number>) => Promise<void>;
-  editRound: (roundId: string, scores: Record<string, number>) => Promise<void>;
+  addRound: (scores: Score[]) => Promise<void>;
+  editRound: (roundId: string, scores: Score[]) => Promise<void>;
   endGame: () => void;
   completeGame: () => Promise<void>;
   selectGame: (gameId: string) => void;
@@ -117,7 +117,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
-  const addRound = async (scores: Record<string, number>) => {
+  const addRound = async (scores: Score[]) => {
     if (!gameState.currentGame) return;
     
     setIsLoading(true);
@@ -145,7 +145,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
-  const editRound = async (roundId: string, scores: Record<string, number>) => {
+  const editRound = async (roundId: string, scores: Score[]) => {
     if (!gameState.currentGame) return;
     
     setIsLoading(true);
@@ -252,7 +252,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!gameState.currentGame) return 0;
     
     return gameState.currentGame.rounds.reduce((total, round) => {
-      return total + (round.scores[playerId] || 0);
+      const scoreEntry = round.scores.find(s => s.playerId === playerId);
+      return total + (scoreEntry?.score || 0);
     }, 0);
   };
   

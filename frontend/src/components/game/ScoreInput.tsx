@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameContext } from '@/contexts/GameContext';
-import { Round } from '@/models/game';
+import { Round, Score } from '@/models/game';
 import { usePlayerNames } from '@/hooks/usePlayerName';
 
 interface ScoreInputProps {
@@ -25,7 +25,12 @@ const ScoreInput: React.FC<ScoreInputProps> = ({ editingRound = null, onCancelEd
   useEffect(() => {
     // If we're editing a round, populate the form with the round's scores
     if (editingRound) {
-      setScores(editingRound.scores);
+      // Convert Score[] to Record<string, number> for internal use
+      const scoresRecord: Record<string, number> = {};
+      editingRound.scores.forEach(scoreEntry => {
+        scoresRecord[scoreEntry.playerId] = scoreEntry.score;
+      });
+      setScores(scoresRecord);
     } else {
       // Initialize all players with 0 scores
       const initialScores: Record<string, number> = {};
@@ -129,15 +134,22 @@ const ScoreInput: React.FC<ScoreInputProps> = ({ editingRound = null, onCancelEd
     setError('');
     
     try {
+      // Convert Record<string, number> to Score[]
+      const scoresArray: Score[] = gameState.currentGame!.players.map(player => ({
+        playerId: player.id,
+        score: scores[player.id] || 0
+      }));
+
       if (editingRound) {
-        await editRound(editingRound.id, scores);
+        await editRound(editingRound.id, scoresArray);
         if (onCancelEdit) onCancelEdit();
       } else {
         // Check if any player will reach the target score with this round
         const currentTotals: Record<string, number> = {};
         gameState.currentGame!.players.forEach(player => {
           const currentTotal = gameState.currentGame!.rounds.reduce((total, round) => {
-            return total + (round.scores[player.id] || 0);
+            const scoreEntry = round.scores.find(s => s.playerId === player.id);
+            return total + (scoreEntry?.score || 0);
           }, 0);
           currentTotals[player.id] = currentTotal + (scores[player.id] || 0);
         });
@@ -153,7 +165,7 @@ const ScoreInput: React.FC<ScoreInputProps> = ({ editingRound = null, onCancelEd
           return;
         }
         
-        await addRound(scores);
+        await addRound(scoresArray);
         
         // Reset to all zeros for next round
         const resetScores: Record<string, number> = {};

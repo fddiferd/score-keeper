@@ -54,8 +54,8 @@ export default function History() {
     });
     
     game.rounds.forEach(round => {
-      Object.entries(round.scores).forEach(([playerId, score]) => {
-        totals[playerId] = (totals[playerId] || 0) + score;
+      round.scores.forEach(scoreEntry => {
+        totals[scoreEntry.playerId] = (totals[scoreEntry.playerId] || 0) + scoreEntry.score;
       });
     });
     

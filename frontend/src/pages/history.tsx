@@ -5,6 +5,7 @@ import { Game } from '@/models/game';
 import frontendApiClient from '@/client/frontend-api-client';
 import { useUser } from '@/contexts/UserContext';
 import UserDropdown from '@/components/UserDropdown';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface TenantUser {
   id: string;
@@ -15,32 +16,34 @@ interface TenantUser {
 
 export default function History() {
   const router = useRouter();
-  const { gameState, selectGame, deleteGame, refreshGames } = useGameContext();
+  const { gameState, selectGame, deleteGame, refreshGames, isLoading, isInitialLoading } = useGameContext();
   const { currentUser } = useUser();
   const { games } = gameState;
   const [filterStatus, setFilterStatus] = useState<'all' | 'complete' | 'inProgress'>('all');
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [tenantUsers, setTenantUsers] = useState<TenantUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   
   // Fetch tenant users on mount
   useEffect(() => {
-    const fetchTenantUsers = async () => {
-      setLoadingUsers(true);
+    const initializePage = async () => {
+      setIsPageLoading(true);
       try {
+        // Fetch tenant users
         const response = await frontendApiClient.get('/users');
         setTenantUsers(response.data || []);
+        
+        // Fetch all tenant games
+        await refreshGames(true);
       } catch (err) {
-        console.error('Error fetching tenant users:', err);
+        console.error('Error initializing page:', err);
       } finally {
-        setLoadingUsers(false);
+        setIsPageLoading(false);
       }
     };
     
-    fetchTenantUsers();
-    // Fetch all tenant games
-    refreshGames(true);
+    initializePage();
   }, []);
 
   const getPlayerTotals = (game: Game) => {
@@ -150,6 +153,7 @@ export default function History() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="page-form-input pl-10"
+            disabled={isPageLoading}
           />
           {searchQuery && (
             <button
@@ -169,31 +173,34 @@ export default function History() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilterStatus('all')}
+              disabled={isPageLoading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterStatus === 'all'
                   ? 'bg-primary text-white'
                   : 'page-btn-secondary'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               All ({games.length})
             </button>
             <button
               onClick={() => setFilterStatus('inProgress')}
+              disabled={isPageLoading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterStatus === 'inProgress'
                   ? 'bg-primary text-white'
                   : 'page-btn-secondary'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               In Progress ({games.filter(g => !g.isComplete).length})
             </button>
             <button
               onClick={() => setFilterStatus('complete')}
+              disabled={isPageLoading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filterStatus === 'complete'
                   ? 'bg-primary text-white'
                   : 'page-btn-secondary'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               Completed ({games.filter(g => g.isComplete).length})
             </button>
@@ -206,19 +213,23 @@ export default function History() {
               selectedUserId={selectedUserId}
               currentUserId={currentUser?.id}
               onSelect={handleUserFilterChange}
-              disabled={loadingUsers}
+              disabled={isPageLoading}
             />
           </div>
         </div>
         
         {/* Results count */}
-        <div className="text-sm page-text-muted">
-          Showing {sortedGames.length} of {games.length} games
-        </div>
+        {!isPageLoading && (
+          <div className="text-sm page-text-muted">
+            Showing {sortedGames.length} of {games.length} games
+          </div>
+        )}
       </div>
 
       {/* Games List */}
-      {sortedGames.length === 0 ? (
+      {isPageLoading ? (
+        <LoadingSpinner message="Loading games..." />
+      ) : sortedGames.length === 0 ? (
         <div className="page-card-simple text-center py-12">
           <div className="page-text-muted mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -27,7 +27,7 @@ class EncryptionService:
             if not encryption_key:
                 # Generate a key from a master password if ENCRYPTION_KEY is not set
                 master_password = os.getenv('MASTER_PASSWORD', 'default-dev-password-change-in-production')
-                logger.warning("ENCRYPTION_KEY not found, deriving key from MASTER_PASSWORD")
+                logger.debug("ENCRYPTION_KEY not found, deriving key from MASTER_PASSWORD")
                 
                 # Use a fixed salt for consistency (in production, consider using a stored salt)
                 salt = b'metric-layer-ai-salt-2024'

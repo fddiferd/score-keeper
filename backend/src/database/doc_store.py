@@ -125,6 +125,14 @@ def _get_collection(collection_path: str, tenant_id: str | None = None) -> Colle
     """
     return db.collection(f"tenants/{tenant_id}/{collection_path}" if tenant_id else collection_path)
 
+def _get_subcollection(parent_collection: str, parent_id: str, subcollection: str, tenant_id: str | None = None) -> CollectionReference:
+    """
+    Get a subcollection reference for a parent document.
+    Example: get_rounds_subcollection("games", "game123", "rounds", "tenant1")
+    """
+    parent_ref = _get_doc_ref(parent_collection, parent_id, tenant_id)
+    return parent_ref.collection(subcollection)
+
 def _get_doc_ref(collection_path: str, doc_id: str, tenant_id: str | None = None) -> DocumentReference:
     """
     Get a document reference for the specified collection and document ID.
@@ -318,3 +326,77 @@ def query_documents_array_contains(
         results.append(doc_data)
     
     return results
+
+# =============================================================================
+# MARK: SUBCOLLECTION OPERATIONS
+# =============================================================================
+
+def get_rounds_collection(game_id: str, tenant_id: str | None = None) -> CollectionReference:
+    """
+    Get the rounds subcollection for a specific game.
+    """
+    return _get_subcollection("games", game_id, "rounds", tenant_id)
+
+def add_round_to_game(game_id: str, round_data: Dict[str, Any], tenant_id: str | None = None) -> str:
+    """
+    Add a round to a game's rounds subcollection.
+    """
+    rounds_collection = get_rounds_collection(game_id, tenant_id)
+    
+    # Generate ID if not provided
+    if "id" not in round_data or round_data["id"] is None:
+        doc_ref = rounds_collection.document()
+        round_data["id"] = doc_ref.id
+    else:
+        doc_ref = rounds_collection.document(round_data["id"])
+    
+    doc_ref.set(round_data)
+    logger.debug(f"Added round {doc_ref.id} to game {game_id}")
+    return doc_ref.id
+
+def get_round_from_game(game_id: str, round_id: str, tenant_id: str | None = None) -> Optional[Dict[str, Any]]:
+    """
+    Get a specific round from a game's rounds subcollection.
+    """
+    rounds_collection = get_rounds_collection(game_id, tenant_id)
+    doc = rounds_collection.document(round_id).get()
+    return doc.to_dict() if doc.exists else None
+
+def get_all_rounds_for_game(game_id: str, tenant_id: str | None = None) -> List[Dict[str, Any]]:
+    """
+    Get all rounds for a game from its rounds subcollection.
+    """
+    rounds_collection = get_rounds_collection(game_id, tenant_id)
+    
+    results = []
+    for doc in rounds_collection.order_by("created_at", direction=Query.ASCENDING).stream():
+        doc_data = doc.to_dict()
+        results.append(doc_data)
+    
+    logger.debug(f"Retrieved {len(results)} rounds for game {game_id}")
+    return results
+
+def update_round_in_game(game_id: str, round_id: str, update_data: Dict[str, Any], tenant_id: str | None = None) -> Optional[Dict[str, Any]]:
+    """
+    Update a round in a game's rounds subcollection.
+    """
+    rounds_collection = get_rounds_collection(game_id, tenant_id)
+    doc_ref = rounds_collection.document(round_id)
+    
+    if not doc_ref.get().exists:
+        logger.error(f"Round {round_id} does not exist in game {game_id}!")
+        return None
+    
+    doc_ref.update(update_data)
+    logger.debug(f"Updated round {round_id} in game {game_id} with: {update_data}")
+    return update_data
+
+def delete_round_from_game(game_id: str, round_id: str, tenant_id: str | None = None) -> bool:
+    """
+    Delete a round from a game's rounds subcollection.
+    """
+    rounds_collection = get_rounds_collection(game_id, tenant_id)
+    doc_ref = rounds_collection.document(round_id)
+    doc_ref.delete()
+    logger.debug(f"Deleted round {round_id} from game {game_id}")
+    return True

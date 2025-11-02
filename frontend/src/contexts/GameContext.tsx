@@ -20,6 +20,7 @@ interface GameContextType {
   getPlayerTotals: (playerId: string) => number;
   refreshGames: (tenantWide?: boolean, userId?: string) => Promise<void>;
   isLoading: boolean;
+  isInitialLoading: boolean;
   error: string | null;
 }
 
@@ -28,11 +29,39 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState>({ games: [], currentGame: null });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch games from backend on mount
+  // Fetch games from backend on mount and auto-load most recent in-progress game
   useEffect(() => {
-    refreshGames();
+    const initializeGames = async () => {
+      setIsInitialLoading(true);
+      try {
+        // Fetch user's active games
+        const activeGamesResponse = await frontendApiClient.get('/games/my-active-games');
+        const activeGames = activeGamesResponse.data.games || [];
+        
+        // Also fetch all games for the user
+        await refreshGames();
+        
+        // Auto-select most recent active game if exists and no game is currently selected
+        if (activeGames.length > 0 && !gameState.currentGame) {
+          const mostRecentGame = activeGames[0]; // Already sorted by updated_at DESC
+          setGameState(prev => ({
+            ...prev,
+            currentGame: mostRecentGame
+          }));
+        }
+      } catch (err) {
+        console.error('Error initializing games:', err);
+        // Fall back to regular refresh
+        await refreshGames();
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+    
+    initializeGames();
   }, []);
   
   const refreshGames = async (tenantWide: boolean = false, userId?: string) => {
@@ -240,6 +269,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getPlayerTotals,
       refreshGames,
       isLoading,
+      isInitialLoading,
       error
     }}>
       {children}

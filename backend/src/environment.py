@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
+DEFAULT_ENVIRONMENT = "DEV"
+
 
 class EnvironmentType(Enum):
     DEV = "DEV"
@@ -21,7 +23,7 @@ class EnvironmentType(Enum):
 
 def get_environment() -> EnvironmentType:
     # if ENVIRONMENT is not set or is set to DEV
-    env_value = os.environ.get("ENVIRONMENT", "DEV")
+    env_value = os.environ.get("ENVIRONMENT", DEFAULT_ENVIRONMENT)
     if env_value == "DEV":
         # load from .env.local
         if os.getcwd().endswith('backend'):

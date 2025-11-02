@@ -28,8 +28,8 @@ const GameScoreboard: React.FC = () => {
     });
     
     game.rounds.forEach(round => {
-      Object.entries(round.scores).forEach(([playerId, score]) => {
-        totals[playerId] = (totals[playerId] || 0) + score;
+      round.scores.forEach(scoreEntry => {
+        totals[scoreEntry.playerId] = (totals[scoreEntry.playerId] || 0) + scoreEntry.score;
       });
     });
     
@@ -214,11 +214,14 @@ const GameScoreboard: React.FC = () => {
                 {currentGame.rounds.map((round, roundIndex) => (
                   <tr key={round.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="py-3 px-2 md:px-4 page-text font-medium text-sm">{roundIndex + 1}</td>
-                    {currentGame.players.map(player => (
-                      <td key={player.id} className="py-3 px-2 md:px-4 text-right page-text font-medium text-sm">
-                        {round.scores[player.id] || 0}
-                      </td>
-                    ))}
+                    {currentGame.players.map(player => {
+                      const scoreEntry = round.scores.find(s => s.playerId === player.id);
+                      return (
+                        <td key={player.id} className="py-3 px-2 md:px-4 text-right page-text font-medium text-sm">
+                          {scoreEntry?.score || 0}
+                        </td>
+                      );
+                    })}
                     <td className="py-3 px-2 md:px-4 text-right">
                       <button
                         onClick={() => handleEditRound(round)}

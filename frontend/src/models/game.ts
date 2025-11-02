@@ -4,9 +4,14 @@ export interface Player {
   userId?: string; // Present for registered users, undefined for custom/guest players
 }
 
+export interface Score {
+  playerId: string;
+  score: number;
+}
+
 export interface Round {
   id: string;
-  scores: Record<string, number>; // playerId -> score
+  scores: Score[];
 }
 
 export interface Game {
